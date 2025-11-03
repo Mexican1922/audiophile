@@ -110,7 +110,7 @@ const CartModal = ({ cartItems, setCartItems, onClose, onCheckoutClick }) => {
             className={`w-full py-3 text-white font-semibold rounded uppercase transition-colors ${
               cartItems.length === 0
                 ? "bg-orange-200 cursor-not-allowed"
-                : "bg-orange-400 hover:bg-orange-300"
+                : "bg-orange-500 hover:bg-orange-600"
             }`}
           >
             CHECKOUT

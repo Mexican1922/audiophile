@@ -1,35 +1,19 @@
 // src/components/ProductDetail.jsx
 import React, { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-
 import Navbar from "./Navbar";
 import CategoryCard from "./CategoryCard";
 import About from "./About";
 import Footer from "./Footer";
+import { getProductById } from "../services/dataService";
 
 const ProductDetail = ({ cartItems, setCartItems, onCartClick }) => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [quantity, setQuantity] = useState(1);
 
-  // Use Convex to fetch the product
-  const { data: product, isLoading } = useQuery(api.products.getProduct, {
-    id: id,
-  });
-
-  if (isLoading) {
-    return (
-      <>
-        <Navbar cartItems={cartItems} onCartClick={onCartClick} />
-        <div className="pt-[90px] flex justify-center items-center min-h-[50vh]">
-          <div className="text-center">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
-            <p className="mt-4 text-gray-600">Loading product...</p>
-          </div>
-        </div>
-      </>
-    );
-  }
+  // ➡️ FIXED: Pass the string 'id' directly. dataService.js will handle parseInt().
+  const product = getProductById(id);
 
   if (!product) {
     return (
@@ -50,73 +34,30 @@ const ProductDetail = ({ cartItems, setCartItems, onCartClick }) => {
     );
   }
 
-  // Add safety checks for product details
   const details = product.details || {
     features: [],
     inTheBox: [],
     gallery: [],
   };
 
-  // --- 🎯 NEW LOGIC FOR 'YOU MAY ALSO LIKE' MIX ---
-  const { data: allProducts } = useQuery(api.products.getProducts);
-  const allOtherProducts =
-    allProducts?.filter((p) => p._id !== product._id) || [];
-
-  // Define categories to pull from, prioritizing the current one (e.g., headphones)
-  const relatedCategories = ["headphones", "speakers", "earphones"];
-  const relatedProducts = [];
-
-  for (const category of relatedCategories) {
-    if (relatedProducts.length >= 3) break;
-
-    const availableProducts = allOtherProducts.filter(
-      (p) =>
-        p.category === category &&
-        !relatedProducts.some((rp) => rp._id === p._id)
-    );
-
-    // Try to include at least one product from each relevant category
-    if (availableProducts.length > 0) {
-      relatedProducts.push(availableProducts[0]);
-    }
-  }
-
-  // Ensure we have exactly 3, padding with any remaining products if needed
-  while (
-    relatedProducts.length < 3 &&
-    allOtherProducts.length > relatedProducts.length
-  ) {
-    const productToAdd = allOtherProducts.find(
-      (p) => !relatedProducts.some((rp) => rp._id === p._id)
-    );
-    if (productToAdd) {
-      relatedProducts.push(productToAdd);
-    } else {
-      break;
-    }
-  }
-  // ---------------------------------------------------
-
   const handleAddToCart = () => {
     const newItem = {
-      id: product._id,
+      id: product.id,
       name: product.name,
       price: product.price,
       quantity: quantity,
       image: product.images.desktop,
     };
-    // Check if item already exists in cart
+
     const existingItemIndex = cartItems.findIndex(
-      (item) => item.id === product._id
+      (item) => item.id === product.id
     );
 
     if (existingItemIndex !== -1) {
-      // Update quantity if item exists
       const updatedCart = [...cartItems];
       updatedCart[existingItemIndex].quantity += quantity;
       setCartItems(updatedCart);
     } else {
-      // Add new item to cart
       setCartItems([...cartItems, newItem]);
     }
 
@@ -158,7 +99,7 @@ const ProductDetail = ({ cartItems, setCartItems, onCartClick }) => {
         <section className="py-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-              {/* Product Image (Main Image) */}
+              {/* Product Image */}
               <div className="bg-gray-100 rounded-lg overflow-hidden">
                 <img
                   src={product.images.desktop}
@@ -183,7 +124,6 @@ const ProductDetail = ({ cartItems, setCartItems, onCartClick }) => {
                 </p>
 
                 <div className="flex items-center mb-8">
-                  {/* Quantity Selector */}
                   <div className="flex items-center border border-gray-300 rounded mr-4">
                     <button
                       onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -199,8 +139,6 @@ const ProductDetail = ({ cartItems, setCartItems, onCartClick }) => {
                       +
                     </button>
                   </div>
-                  {/* End Quantity Selector */}
-
                   <button
                     onClick={handleAddToCart}
                     className="px-8 py-3 bg-orange-500 text-white font-semibold rounded hover:bg-orange-600 transition-colors"
@@ -294,43 +232,78 @@ const ProductDetail = ({ cartItems, setCartItems, onCartClick }) => {
           </div>
         </section>
 
-        {/* You May Also Like Section */}
+        {/* You May Also Like (Note: Hardcoded for example, should be dynamic) */}
         <section className="py-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 className="text-2xl font-bold uppercase tracking-wide text-center mb-12">
               YOU MAY ALSO LIKE
             </h2>
-            {relatedProducts.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {relatedProducts.map((relatedProduct) => (
-                  <div key={relatedProduct._id} className="text-center">
-                    <div className="bg-gray-100 rounded-lg overflow-hidden mb-6">
-                      <img
-                        src={relatedProduct.images.desktop}
-                        alt={relatedProduct.name}
-                        className="w-full h-64 object-cover"
-                      />
-                    </div>
-                    <h3 className="text-xl font-bold uppercase tracking-wide mb-4">
-                      {relatedProduct.name}
-                    </h3>
-                    <Link
-                      to={`/${relatedProduct.category}/${relatedProduct._id}`}
-                      className="px-8 py-3 bg-orange-500 text-white font-semibold rounded hover:bg-orange-600 transition-colors inline-block"
-                    >
-                      SEE PRODUCT
-                    </Link>
-                  </div>
-                ))}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {/* === RELATED PRODUCT 1: XX99 Mark I === */}
+              <div className="text-center">
+                <div className="bg-gray-100 rounded-lg overflow-hidden mb-6">
+                  <img
+                    src="/src/assets/Images/product-xx99-mark-one-headphones/desktop/image-category-page-preview.jpg"
+                    alt="Related Product"
+                    className="w-full h-64 object-cover"
+                  />
+                </div>
+                <h3 className="text-xl font-bold uppercase tracking-wide mb-4">
+                  XX99 Mark I
+                </h3>
+                {/* 🌟 FIX APPLIED HERE: Using Link instead of navigate */}
+                <Link
+                  to={"/headphones/2"}
+                  className="inline-block px-8 py-3 bg-orange-500 text-white font-semibold rounded hover:bg-orange-600 transition-colors"
+                >
+                  SEE PRODUCT
+                </Link>
               </div>
-            ) : (
-              <div className="text-center text-gray-500">
-                No related products available.
+
+              {/* === RELATED PRODUCT 2: XX59 === */}
+              <div className="text-center">
+                <div className="bg-gray-100 rounded-lg overflow-hidden mb-6">
+                  <img
+                    src="/src/assets/Images/product-xx59-headphones/desktop/image-category-page-preview.jpg"
+                    alt="Related Product"
+                    className="w-full h-64 object-cover"
+                  />
+                </div>
+                <h3 className="text-xl font-bold uppercase tracking-wide mb-4">
+                  XX59
+                </h3>
+                {/* 🌟 FIX APPLIED HERE: Using Link instead of navigate */}
+                <Link
+                  to={"/headphones/3"}
+                  className="inline-block px-8 py-3 bg-orange-500 text-white font-semibold rounded hover:bg-orange-600 transition-colors"
+                >
+                  SEE PRODUCT
+                </Link>
               </div>
-            )}
+
+              {/* === RELATED PRODUCT 3: ZX9 SPEAKER === */}
+              <div className="text-center">
+                <div className="bg-gray-100 rounded-lg overflow-hidden mb-6">
+                  <img
+                    src="/src/assets/Images/product-zx9-speaker/desktop/image-category-page-preview.jpg"
+                    alt="Related Product"
+                    className="w-full h-64 object-cover"
+                  />
+                </div>
+                <h3 className="text-xl font-bold uppercase tracking-wide mb-4">
+                  ZX9 SPEAKER
+                </h3>
+                {/* 🌟 FIX APPLIED HERE: Using Link instead of navigate */}
+                <Link
+                  to={"/speakers/4"}
+                  className="inline-block px-8 py-3 bg-orange-500 text-white font-semibold rounded hover:bg-orange-600 transition-colors"
+                >
+                  SEE PRODUCT
+                </Link>
+              </div>
+            </div>
           </div>
         </section>
-        {/* End You May Also Like Section */}
 
         {/* Utility Components */}
         <CategoryCard />

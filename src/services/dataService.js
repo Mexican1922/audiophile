@@ -13,9 +13,11 @@ export const getProductsByCategory = (category) => {
   return products.filter((p) => p.category === category);
 };
 
-// Get product by ID
+// ➡️ CONFIRMED: Get product by ID (Handles the Conversion)
 export const getProductById = (id) => {
   const products = getProducts();
+  // Ensure the string 'id' from the URL is converted to an integer
+  // to match the numeric 'p.id' in the product data.
   return products.find((p) => p.id === parseInt(id));
 };
 

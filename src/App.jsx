@@ -1,55 +1,55 @@
 // src/App.jsx
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-
-
 import Navbar from "./components/Navbar";
 import CartModal from "./components/CartModal";
 import CheckoutModal from "./components/CheckoutModal";
 
-// 🎯 Main Product Pages
+// Pages
 import HomePage from "./pages/HomePage";
 import HeadphonesPage from "./pages/HeadphonesPage";
 import SpeakersPage from "./pages/SpeakersPage";
 import EarphonesPage from "./pages/EarphonesPage";
 
-// 🎯 Product Detail Pages
+// Product Details
 import ProductDetail from "./components/ProductDetail";
 import SpeakerDetail from "./components/SpeakerDetail";
 import EarphoneDetail from "./components/EarphoneDetail";
 
-// 🎯 Data Source
-import { ALL_PRODUCTS } from "./data/allProducts";
+// Data service
+import { getProductsByCategory, saveOrder } from "./services/dataService";
 
 function App() {
-  // --- CART STATE ---
   const [cartItems, setCartItems] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
 
-  // 🛒 Toggle Cart Modal
   const handleCartClick = () => {
     setIsCartOpen((prev) => !prev);
   };
 
-  // 🛒 Toggle Checkout Modal
   const handleCheckoutClick = () => {
-    setIsCartOpen(false);
-    setIsCheckoutOpen(true);
+    setIsCartOpen(false); // Closes the CartModal
+    setIsCheckoutOpen(true); // Opens the CheckoutModal
   };
 
-  // 🛒 Close Checkout Modal
   const handleCheckoutClose = () => {
     setIsCheckoutOpen(false);
   };
 
-  // 🛒 Handle Checkout Complete
-  const handleCheckoutComplete = () => {
-    setCartItems([]);
-    setIsCheckoutOpen(false);
+  const handleCheckoutComplete = async (orderData) => {
+    try {
+      const order = await saveOrder(orderData);
+      console.log("Order saved:", order);
+      setCartItems([]);
+      // setIsCheckoutOpen(false);
+      // alert("Order placed successfully!");
+    } catch (error) {
+      console.error("Error saving order:", error);
+      alert("Error placing order. Please try again.");
+    }
   };
 
-  // 🔄 Disable background scroll when modal is open
   useEffect(() => {
     if (isCartOpen || isCheckoutOpen) {
       document.body.style.overflow = "hidden";
@@ -58,103 +58,84 @@ function App() {
     }
   }, [isCartOpen, isCheckoutOpen]);
 
-  // 🧭 Filter products by category
-  const getProductsByCategory = (category) =>
-    ALL_PRODUCTS.filter((p) => p.category === category);
-
   return (
-    <ConvexProvider client={convex}>
-      <Router>
-        <div className="App relative min-h-screen bg-white">
-          {/* Navbar appears on all pages */}
-          <Navbar cartItems={cartItems} onCartClick={handleCartClick} />
+    <Router>
+      <div className="App relative min-h-screen bg-white">
+        <Navbar cartItems={cartItems} onCartClick={handleCartClick} />
 
-          {/* 🛒 Cart Modal */}
-          {isCartOpen && (
-            <CartModal
-              cartItems={cartItems}
-              setCartItems={setCartItems}
-              onClose={handleCartClick}
-              onCheckoutClick={handleCheckoutClick}
-            />
-          )}
+        {isCartOpen && (
+          <CartModal
+            cartItems={cartItems}
+            setCartItems={setCartItems}
+            onClose={handleCartClick}
+            onCheckoutClick={handleCheckoutClick}
+          />
+        )}
 
-          {/* 🛒 Checkout Modal */}
-          {isCheckoutOpen && (
-            <CheckoutModal
-              cartItems={cartItems}
-              onClose={handleCheckoutClose}
-              onCheckoutComplete={handleCheckoutComplete}
-            />
-          )}
+        {isCheckoutOpen && (
+          <CheckoutModal
+            cartItems={cartItems}
+            onClose={handleCheckoutClose}
+            onCheckoutComplete={handleCheckoutComplete}
+          />
+        )}
 
-          {/* 📦 Page Routes */}
-          <Routes>
-            {/* Home */}
-            <Route path="/" element={<HomePage />} />
-
-            {/* Headphones */}
-            <Route
-              path="/headphones"
-              element={
-                <HeadphonesPage
-                  products={getProductsByCategory("headphones")}
-                />
-              }
-            />
-            <Route
-              path="/headphones/:id"
-              element={
-                <ProductDetail
-                  products={ALL_PRODUCTS}
-                  cartItems={cartItems}
-                  setCartItems={setCartItems}
-                  onCartClick={handleCartClick}
-                />
-              }
-            />
-
-            {/* Speakers */}
-            <Route
-              path="/speakers"
-              element={
-                <SpeakersPage products={getProductsByCategory("speakers")} />
-              }
-            />
-            <Route
-              path="/speakers/:id"
-              element={
-                <SpeakerDetail
-                  products={ALL_PRODUCTS}
-                  cartItems={cartItems}
-                  setCartItems={setCartItems}
-                  onCartClick={handleCartClick}
-                />
-              }
-            />
-
-            {/* Earphones */}
-            <Route
-              path="/earphones"
-              element={
-                <EarphonesPage products={getProductsByCategory("earphones")} />
-              }
-            />
-            <Route
-              path="/earphones/:id"
-              element={
-                <EarphoneDetail
-                  products={ALL_PRODUCTS}
-                  cartItems={cartItems}
-                  setCartItems={setCartItems}
-                  onCartClick={handleCartClick}
-                />
-              }
-            />
-          </Routes>
-        </div>
-      </Router>
-    </ConvexProvider>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route
+            path="/headphones"
+            element={
+              <HeadphonesPage products={getProductsByCategory("headphones")} />
+            }
+          />
+          <Route
+            path="/headphones/:id"
+            element={
+              <ProductDetail
+                products={getProductsByCategory("headphones")}
+                cartItems={cartItems}
+                setCartItems={setCartItems}
+                onCartClick={handleCartClick}
+              />
+            }
+          />
+          <Route
+            path="/speakers"
+            element={
+              <SpeakersPage products={getProductsByCategory("speakers")} />
+            }
+          />
+          <Route
+            path="/speakers/:id"
+            element={
+              <SpeakerDetail
+                products={getProductsByCategory("speakers")}
+                cartItems={cartItems}
+                setCartItems={setCartItems}
+                onCartClick={handleCartClick}
+              />
+            }
+          />
+          <Route
+            path="/earphones"
+            element={
+              <EarphonesPage products={getProductsByCategory("earphones")} />
+            }
+          />
+          <Route
+            path="/earphones/:id"
+            element={
+              <EarphoneDetail
+                products={getProductsByCategory("earphones")}
+                cartItems={cartItems}
+                setCartItems={setCartItems}
+                onCartClick={handleCartClick}
+              />
+            }
+          />
+        </Routes>
+      </div>
+    </Router>
   );
 }
 

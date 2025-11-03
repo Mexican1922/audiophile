@@ -53,9 +53,9 @@ const ProductCard = ({ product, isReversed, category }) => {
         </h2>
         <p className="text-gray-600 mb-6">{description}</p>
 
-        {/* Use product.category for the URL path */}
+        {/* 🌟 FIX APPLIED HERE: Changed product._id to product.id */}
         <Link
-          to={`/${category}/${product._id}`}
+          to={`/${category}/${product.id}`}
           className="inline-block px-8 py-3 bg-orange-500 text-white font-semibold rounded hover:bg-orange-600 transition-colors"
         >
           SEE PRODUCT

@@ -13,12 +13,12 @@ const Footer = () => {
 
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 mb-12">
           {/* Left Column - Logo and Description */}
-          <div className="order-2 lg:order-1">
+          <div className=" lg:order-1">
             <div className="mb-8 tracking-wide">
               <img
                 src={logo}
                 alt="Audiophile Logo"
-                className="h-8 object-contain"
+                className="h-8 object-contain mx-auto lg:mx-0"
               />
             </div>
             <p className="text-white opacity-50 leading-relaxed max-w-lg text-sm lg:text-base">

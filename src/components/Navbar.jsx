@@ -37,8 +37,8 @@ const Navbar = ({ cartItems = [], onCartClick }) => {
           <li>
             <Link
               to="/"
-              className={`hover:text-orange-400 transition-colors ${
-                isActive("/") ? "text-orange-400" : ""
+              className={`hover:text-orange-500 transition-colors ${
+                isActive("/") ? "text-orange-500" : ""
               }`}
             >
               Home
@@ -47,8 +47,8 @@ const Navbar = ({ cartItems = [], onCartClick }) => {
           <li>
             <Link
               to="/headphones"
-              className={`hover:text-orange-400 transition-colors ${
-                isActive("/headphones") ? "text-orange-400" : ""
+              className={`hover:text-orange-500 transition-colors ${
+                isActive("/headphones") ? "text-orange-500" : ""
               }`}
             >
               Headphones
@@ -57,8 +57,8 @@ const Navbar = ({ cartItems = [], onCartClick }) => {
           <li>
             <Link
               to="/speakers"
-              className={`hover:text-orange-400 transition-colors ${
-                isActive("/speakers") ? "text-orange-400" : ""
+              className={`hover:text-orange-500 transition-colors ${
+                isActive("/speakers") ? "text-orange-500" : ""
               }`}
             >
               Speakers
@@ -67,8 +67,8 @@ const Navbar = ({ cartItems = [], onCartClick }) => {
           <li>
             <Link
               to="/earphones"
-              className={`hover:text-orange-400 transition-colors ${
-                isActive("/earphones") ? "text-orange-400" : ""
+              className={`hover:text-orange-500 transition-colors ${
+                isActive("/earphones") ? "text-orange-500" : ""
               }`}
             >
               Earphones
@@ -79,12 +79,12 @@ const Navbar = ({ cartItems = [], onCartClick }) => {
         {/* Cart Icon */}
         <button
           onClick={onCartClick}
-          className="relative text-xl ml-auto focus:outline-none focus:ring-2 focus:ring-orange-400 rounded"
+          className="relative text-xl ml-auto outline-none cursor-pointer"
           aria-label="View shopping cart"
         >
           <img src={cartIcon} alt="Shopping Cart" className="h-6 w-auto" />
           {cartItems.length > 0 && (
-            <span className="absolute -top-2 -right-2 bg-orange-400 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+            <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
               {cartItems.length}
             </span>
           )}
@@ -102,7 +102,7 @@ const Navbar = ({ cartItems = [], onCartClick }) => {
           <li>
             <Link
               to="/"
-              className={`block py-2 hover:text-orange-400 transition-colors ${
+              className={`block py-2 hover:text-orange-500 transition-colors ${
                 isActive("/") ? "text-orange-500" : ""
               }`}
               onClick={() => setIsMenuOpen(false)}
@@ -113,8 +113,8 @@ const Navbar = ({ cartItems = [], onCartClick }) => {
           <li>
             <Link
               to="/headphones"
-              className={`block py-2 hover:text-orange-400 transition-colors ${
-                isActive("/headphones") ? "text-orange-400" : ""
+              className={`block py-2 hover:text-orange-500 transition-colors ${
+                isActive("/headphones") ? "text-orange-500" : ""
               }`}
               onClick={() => setIsMenuOpen(false)}
             >
@@ -124,8 +124,8 @@ const Navbar = ({ cartItems = [], onCartClick }) => {
           <li>
             <Link
               to="/speakers"
-              className={`block py-2 hover:text-orange-400 transition-colors ${
-                isActive("/speakers") ? "text-orange-400" : ""
+              className={`block py-2 hover:text-orange-500 transition-colors ${
+                isActive("/speakers") ? "text-orange-500" : ""
               }`}
               onClick={() => setIsMenuOpen(false)}
             >
@@ -135,8 +135,8 @@ const Navbar = ({ cartItems = [], onCartClick }) => {
           <li>
             <Link
               to="/earphones"
-              className={`block py-2 hover:text-orange-400 transition-colors ${
-                isActive("/earphones") ? "text-orange-400" : ""
+              className={`block py-2 hover:text-orange-500 transition-colors ${
+                isActive("/earphones") ? "text-orange-500" : ""
               }`}
               onClick={() => setIsMenuOpen(false)}
             >
