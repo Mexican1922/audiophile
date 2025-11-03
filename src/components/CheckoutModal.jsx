@@ -1,5 +1,7 @@
 // src/components/CheckoutModal.jsx
 import React, { useState } from "react";
+import { useMutation } from "convex/react";
+import { api } from "../convex/_generated/api";
 import BillingDetails from "./checkout/BillingDetails";
 import ShippingInfo from "./checkout/ShippingInfo";
 import PaymentDetails from "./checkout/PaymentDetails";
@@ -26,6 +28,9 @@ const CheckoutModal = ({ cartItems, onClose, onCheckoutComplete }) => {
   const [errors, setErrors] = useState({});
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [orderDetails, setOrderDetails] = useState(null);
+
+  // Use Convex mutation to create order
+  const createOrder = useMutation(api.orders.createOrder);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -67,59 +72,75 @@ const CheckoutModal = ({ cartItems, onClose, onCheckoutComplete }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = () => {
-    console.log("Checkout submitted"); // Debug log
+  const handleSubmit = async () => {
+    console.log("Checkout submitted");
 
     if (validateForm()) {
-      // Calculate totals
-      const subtotal = cartItems.reduce(
-        (sum, item) => sum + item.price * item.quantity,
-        0
-      );
-      const shipping = 50;
-      const tax = subtotal * 0.1; // 10% tax
-      const total = subtotal + shipping + tax;
+      try {
+        // Calculate totals
+        const subtotal = cartItems.reduce(
+          (sum, item) => sum + item.price * item.quantity,
+          0
+        );
+        const shipping = 50;
+        const tax = subtotal * 0.1; // 10% tax
+        const total = subtotal + shipping + tax;
 
-      // Create order details
-      const newOrderDetails = {
-        orderNumber: Math.floor(Math.random() * 1000000),
-        items: cartItems,
-        subtotal,
-        shipping,
-        tax,
-        total,
-        customerInfo: {
-          name: formData.name,
-          email: formData.email,
-          address: formData.address,
-          city: formData.city,
-          zipCode: formData.zipCode,
-          country: formData.country,
-        },
-        paymentMethod: formData.paymentMethod,
-      };
+        // Create order details
+        const newOrderDetails = {
+          orderNumber: Math.floor(Math.random() * 1000000),
+          items: cartItems,
+          subtotal,
+          shipping,
+          tax,
+          total,
+          customerInfo: {
+            name: formData.name,
+            email: formData.email,
+            address: formData.address,
+            city: formData.city,
+            zipCode: formData.zipCode,
+            country: formData.country,
+          },
+          paymentMethod: formData.paymentMethod,
+        };
 
-      console.log("Order details created:", newOrderDetails); // Debug log
+        // Create order in Convex
+        const orderId = await createOrder({
+          customerInfo: newOrderDetails.customerInfo,
+          items: newOrderDetails.items,
+          subtotal: newOrderDetails.subtotal,
+          shipping: newOrderDetails.shipping,
+          tax: newOrderDetails.tax,
+          total: newOrderDetails.total,
+          paymentMethod: newOrderDetails.paymentMethod,
+        });
 
-      setOrderDetails(newOrderDetails);
-      setShowConfirmation(true);
+        console.log("Order created with ID:", orderId);
 
-      // Process checkout
-      onCheckoutComplete();
+        setOrderDetails(newOrderDetails);
+        setShowConfirmation(true);
+
+        // Process checkout
+        onCheckoutComplete();
+      } catch (error) {
+        console.error("Error creating order:", error);
+        alert("There was an error processing your order. Please try again.");
+      }
     } else {
-      console.log("Form validation failed"); // Debug log
+      console.log("Form validation failed");
     }
   };
 
   const handleCloseConfirmation = () => {
-    console.log("Closing confirmation"); // Debug log
+    console.log("Closing confirmation");
     setShowConfirmation(false);
     onClose();
   };
 
   // Show order confirmation if checkout was successful
   if (showConfirmation) {
-    console.log("Showing order confirmation"); // Debug log
+    console.log("Showing order confirmation");
     return (
       <OrderConfirmation
         orderDetails={orderDetails}
@@ -130,11 +151,11 @@ const CheckoutModal = ({ cartItems, onClose, onCheckoutComplete }) => {
 
   return (
     <div
-      className="fixed inset-0 bg-black/10 backdrop-blur-[2px] `z-[60]` flex justify-center items-start pt-[100px] px-4 overflow-y-auto"
+      className="fixed inset-0 bg-black/10 backdrop-blur-[2px] z-[60] flex justify-center items-start pt-[100px] px-4 overflow-y-auto"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-6xl bg-white p-8 rounded-lg shadow-2xl `z-[70]` animate-fadeIn"
+        className="w-full max-w-6xl bg-white p-8 rounded-lg shadow-2xl z-[70] animate-fadeIn"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

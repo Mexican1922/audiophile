@@ -1,31 +1,52 @@
-// ProductDetail.jsx (Used for Headphone/Generic Detail pages)
+// src/components/ProductDetail.jsx
 import React, { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
+
 import Navbar from "./Navbar";
 import CategoryCard from "./CategoryCard";
 import About from "./About";
 import Footer from "./Footer";
 
-const ProductDetail = ({ products, cartItems, setCartItems, onCartClick }) => {
+const ProductDetail = ({ cartItems, setCartItems, onCartClick }) => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [quantity, setQuantity] = useState(1);
 
-  const product = products.find((p) => p.id === parseInt(id));
+  // Use Convex to fetch the product
+  const { data: product, isLoading } = useQuery(api.products.getProduct, {
+    id: id,
+  });
+
+  if (isLoading) {
+    return (
+      <>
+        <Navbar cartItems={cartItems} onCartClick={onCartClick} />
+        <div className="pt-[90px] flex justify-center items-center min-h-[50vh]">
+          <div className="text-center">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+            <p className="mt-4 text-gray-600">Loading product...</p>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   if (!product) {
     return (
-      <div className="pt-[90px] min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold mb-4">Product not found</h2>
-          <button
-            onClick={() => navigate(-1)}
-            className="px-6 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 transition-colors"
-          >
-            Go Back
-          </button>
+      <>
+        <Navbar cartItems={cartItems} onCartClick={onCartClick} />
+        <div className="pt-[90px] min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold mb-4">Product not found</h2>
+            <button
+              onClick={() => navigate(-1)}
+              className="px-6 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 transition-colors"
+            >
+              Go Back
+            </button>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
@@ -36,10 +57,10 @@ const ProductDetail = ({ products, cartItems, setCartItems, onCartClick }) => {
     gallery: [],
   };
 
-  const currentProductId = parseInt(id);
-
   // --- 🎯 NEW LOGIC FOR 'YOU MAY ALSO LIKE' MIX ---
-  const allOtherProducts = products.filter((p) => p.id !== currentProductId);
+  const { data: allProducts } = useQuery(api.products.getProducts);
+  const allOtherProducts =
+    allProducts?.filter((p) => p._id !== product._id) || [];
 
   // Define categories to pull from, prioritizing the current one (e.g., headphones)
   const relatedCategories = ["headphones", "speakers", "earphones"];
@@ -50,7 +71,8 @@ const ProductDetail = ({ products, cartItems, setCartItems, onCartClick }) => {
 
     const availableProducts = allOtherProducts.filter(
       (p) =>
-        p.category === category && !relatedProducts.some((rp) => rp.id === p.id)
+        p.category === category &&
+        !relatedProducts.some((rp) => rp._id === p._id)
     );
 
     // Try to include at least one product from each relevant category
@@ -65,7 +87,7 @@ const ProductDetail = ({ products, cartItems, setCartItems, onCartClick }) => {
     allOtherProducts.length > relatedProducts.length
   ) {
     const productToAdd = allOtherProducts.find(
-      (p) => !relatedProducts.some((rp) => rp.id === p.id)
+      (p) => !relatedProducts.some((rp) => rp._id === p._id)
     );
     if (productToAdd) {
       relatedProducts.push(productToAdd);
@@ -77,7 +99,7 @@ const ProductDetail = ({ products, cartItems, setCartItems, onCartClick }) => {
 
   const handleAddToCart = () => {
     const newItem = {
-      id: product.id,
+      id: product._id,
       name: product.name,
       price: product.price,
       quantity: quantity,
@@ -85,7 +107,7 @@ const ProductDetail = ({ products, cartItems, setCartItems, onCartClick }) => {
     };
     // Check if item already exists in cart
     const existingItemIndex = cartItems.findIndex(
-      (item) => item.id === product.id
+      (item) => item.id === product._id
     );
 
     if (existingItemIndex !== -1) {
@@ -148,7 +170,7 @@ const ProductDetail = ({ products, cartItems, setCartItems, onCartClick }) => {
               {/* Product Info */}
               <div>
                 {product.isNew && (
-                  <span className="inline-block px-3 py-1 text-sm font-semibold text-orange-400 bg-orange-50 rounded-full mb-4">
+                  <span className="inline-block px-3 py-1 text-sm font-semibold text-orange-500 bg-orange-50 rounded-full mb-4">
                     NEW PRODUCT
                   </span>
                 )}
@@ -157,7 +179,7 @@ const ProductDetail = ({ products, cartItems, setCartItems, onCartClick }) => {
                 </h1>
                 <p className="text-gray-600 mb-6">{product.description}</p>
                 <p className="text-2xl font-bold mb-6">
-                  {product.formattedPrice}
+                  ${product.price.toLocaleString("en-US")}
                 </p>
 
                 <div className="flex items-center mb-8">
@@ -181,7 +203,7 @@ const ProductDetail = ({ products, cartItems, setCartItems, onCartClick }) => {
 
                   <button
                     onClick={handleAddToCart}
-                    className="px-8 py-3 bg-orange-400 text-white font-semibold rounded hover:bg-orange-300 transition-colors"
+                    className="px-8 py-3 bg-orange-500 text-white font-semibold rounded hover:bg-orange-600 transition-colors"
                   >
                     ADD TO CART
                   </button>
@@ -222,7 +244,7 @@ const ProductDetail = ({ products, cartItems, setCartItems, onCartClick }) => {
                   {details.inTheBox && details.inTheBox.length > 0 ? (
                     details.inTheBox.map((item, index) => (
                       <div key={index} className="flex">
-                        <span className="text-orange-400 font-bold mr-3">
+                        <span className="text-orange-500 font-bold mr-3">
                           {item.quantity}x
                         </span>
                         <span className="text-gray-600">{item.item}</span>
@@ -281,7 +303,7 @@ const ProductDetail = ({ products, cartItems, setCartItems, onCartClick }) => {
             {relatedProducts.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {relatedProducts.map((relatedProduct) => (
-                  <div key={relatedProduct.id} className="text-center">
+                  <div key={relatedProduct._id} className="text-center">
                     <div className="bg-gray-100 rounded-lg overflow-hidden mb-6">
                       <img
                         src={relatedProduct.images.desktop}
@@ -293,8 +315,8 @@ const ProductDetail = ({ products, cartItems, setCartItems, onCartClick }) => {
                       {relatedProduct.name}
                     </h3>
                     <Link
-                      to={`/${relatedProduct.category}/${relatedProduct.id}`}
-                      className="px-8 py-3 bg-orange-400 text-white font-semibold rounded hover:bg-orange-300 transition-colors inline-block"
+                      to={`/${relatedProduct.category}/${relatedProduct._id}`}
+                      className="px-8 py-3 bg-orange-500 text-white font-semibold rounded hover:bg-orange-600 transition-colors inline-block"
                     >
                       SEE PRODUCT
                     </Link>
