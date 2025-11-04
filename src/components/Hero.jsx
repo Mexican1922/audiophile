@@ -47,7 +47,7 @@ const Hero = () => {
             New Product
           </p>
 
-          <h1 className="text-4xl md:text-5xl lg:text-7xl font-bold uppercase leading-snug">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold uppercase leading-snug">
             XX99 Mark II <br className="lg:block hidden" /> Headphones
           </h1>
 
