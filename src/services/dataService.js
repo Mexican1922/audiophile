@@ -7,6 +7,9 @@ export const getProducts = () => {
   return stored ? JSON.parse(stored) : ALL_PRODUCTS;
 };
 
+// 🌟 NEW FUNCTION: Get ALL products (Used for Related Products calculation)
+export const getAllProducts = () => getProducts();
+
 // Get products by category
 export const getProductsByCategory = (category) => {
   const products = getProducts();
@@ -15,9 +18,7 @@ export const getProductsByCategory = (category) => {
 
 // ➡️ CONFIRMED: Get product by ID (Handles the Conversion)
 export const getProductById = (id) => {
-  const products = getProducts();
-  // Ensure the string 'id' from the URL is converted to an integer
-  // to match the numeric 'p.id' in the product data.
+  const products = getProducts(); // Ensure the string 'id' from the URL is converted to an integer // to match the numeric 'p.id' in the product data.
   return products.find((p) => p.id === parseInt(id));
 };
 

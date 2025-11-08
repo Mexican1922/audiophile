@@ -1,4 +1,3 @@
-// src/components/CheckoutModal.jsx
 import React, { useState } from "react";
 import BillingDetails from "./checkout/BillingDetails";
 import ShippingInfo from "./checkout/ShippingInfo";
@@ -26,19 +25,19 @@ const CheckoutModal = ({ cartItems, onClose, onCheckoutComplete }) => {
   const [orderDetails, setOrderDetails] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Handle input field changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
 
-    // Remove only the specific error for this field
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
 
+  // Validate form fields before submission
   const validateForm = () => {
     const newErrors = {};
-
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!formData.name.trim()) newErrors.name = "Name is required";
@@ -62,43 +61,42 @@ const CheckoutModal = ({ cartItems, onClose, onCheckoutComplete }) => {
     return Object.keys(newErrors).length === 0;
   };
 
+  // ✅ Combined checkout handler
   const handleSubmit = async () => {
     if (!validateForm()) return;
 
     setIsSubmitting(true);
 
+    // Calculate order costs
     const subtotal = cartItems.reduce(
       (sum, item) => sum + Number(item.price) * Number(item.quantity),
       0
     );
     const shipping = 50;
-    const tax = subtotal * 0.1;
-    const total = subtotal + shipping + tax;
+    const vat = subtotal * 0.1;
+    const total = subtotal + shipping + vat;
 
-    const newOrderDetails = {
+    // ✅ Equivalent to your old handleCheckout logic, but dynamic
+    const orderData = {
+      email: formData.email,
+      customerName: formData.name,
       orderNumber: Math.floor(100000 + Math.random() * 900000),
       items: cartItems,
       subtotal,
       shipping,
-      tax,
+      vat,
       total,
-      customerInfo: {
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        address: formData.address,
-        city: formData.city,
-        zipCode: formData.zipCode,
-        country: formData.country,
-      },
+      address: formData.address,
+      city: formData.city,
+      country: formData.country,
       paymentMethod: formData.paymentMethod,
     };
 
     try {
-      await saveOrder(newOrderDetails); // Success!
-      setOrderDetails(newOrderDetails);
-      setShowConfirmation(true); // Confirmation renders!
-      onCheckoutComplete?.(); // This now does nothing but clear the cart state
+      await saveOrder(orderData);
+      setOrderDetails(orderData);
+      setShowConfirmation(true);
+      onCheckoutComplete?.();
     } catch (error) {
       console.error("Error creating order:", error);
       alert("There was an error processing your order. Please try again.");
@@ -123,7 +121,7 @@ const CheckoutModal = ({ cartItems, onClose, onCheckoutComplete }) => {
 
   return (
     <div
-      className="fixed inset-0 bg-black/10 backdrop-blur-[2px] `not-last:`flex justify-center items-start pt-[100px] px-4 overflow-y-auto"
+      className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex justify-center items-start pt-[100px] px-4 overflow-y-auto"
       onClick={onClose}
     >
       <div
@@ -165,13 +163,11 @@ const CheckoutModal = ({ cartItems, onClose, onCheckoutComplete }) => {
               errors={errors}
               onChange={handleInputChange}
             />
-
             <ShippingInfo
               formData={formData}
               errors={errors}
               onChange={handleInputChange}
             />
-
             <PaymentDetails
               formData={formData}
               errors={errors}

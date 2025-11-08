@@ -5,17 +5,28 @@ import Navbar from "./Navbar";
 import CategoryCard from "./CategoryCard";
 import About from "./About";
 import Footer from "./Footer";
-import { getProductById } from "../services/dataService";
+import { getProductById, getAllProducts } from "../services/dataService"; // 👈 Assuming getAllProducts is available
+
+// =====================================================================
+// 🌟 IMAGE FIX: Import static assets for the hardcoded "You May Also Like" section
+// (This is only necessary if you still have the hardcoded section as shown in your prompt)
+// ======================================================================================================================================
 
 const ProductDetail = ({ cartItems, setCartItems, onCartClick }) => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [quantity, setQuantity] = useState(1);
 
-  // ➡️ FIXED: Pass the string 'id' directly. dataService.js will handle parseInt().
+  // Fetch the specific product using the ID
   const product = getProductById(id);
 
+  // Fetch all products to calculate "You May Also Like" section
+  // NOTE: If products are passed as a prop to your main App component,
+  // you should pass them down here instead of calling getAllProducts.
+  const allProducts = getAllProducts();
+
   if (!product) {
+    // ... (Product not found logic remains the same)
     return (
       <>
         <Navbar cartItems={cartItems} onCartClick={onCartClick} />
@@ -39,6 +50,25 @@ const ProductDetail = ({ cartItems, setCartItems, onCartClick }) => {
     inTheBox: [],
     gallery: [],
   };
+
+  // 🧠 RELATED PRODUCTS LOGIC (Adapted from SpeakerDetail)
+  const currentProductId = parseInt(id);
+  const allOtherProducts = allProducts.filter((p) => p.id !== currentProductId);
+
+  const sameCategoryProducts = allOtherProducts.filter(
+    (p) => p.category === product.category
+  );
+  // Grab the rest of the products regardless of category to fill the three slots
+  const otherProducts = allOtherProducts.filter(
+    (p) => p.category !== product.category
+  );
+
+  // Take one from the same category, and the next two from any other category
+  const relatedProducts = [
+    ...sameCategoryProducts.slice(0, 1),
+    ...otherProducts.slice(0, 2),
+  ].slice(0, 3);
+  // ----------------------------------------------------------------------
 
   const handleAddToCart = () => {
     const newItem = {
@@ -232,75 +262,34 @@ const ProductDetail = ({ cartItems, setCartItems, onCartClick }) => {
           </div>
         </section>
 
-        {/* You May Also Like (Note: Hardcoded for example, should be dynamic) */}
+        {/* ❤️ You May Also Like (Now dynamic) */}
         <section className="py-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 className="text-2xl font-bold uppercase tracking-wide text-center mb-12">
               YOU MAY ALSO LIKE
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {/* === RELATED PRODUCT 1: XX99 Mark I === */}
-              <div className="text-center">
-                <div className="bg-gray-100 rounded-lg overflow-hidden mb-6">
-                  <img
-                    src="/src/assets/Images/product-xx99-mark-one-headphones/desktop/image-category-page-preview.jpg"
-                    alt="Related Product"
-                    className="w-full h-64 object-cover"
-                  />
+              {relatedProducts.map((relatedProduct) => (
+                <div key={relatedProduct.id} className="text-center">
+                  <div className="bg-gray-100 rounded-lg overflow-hidden mb-6">
+                    <img
+                      // 💡 Using the dynamic product image from the relatedProducts array
+                      src={relatedProduct.images.desktop}
+                      alt={relatedProduct.name}
+                      className="w-full h-64 object-cover"
+                    />
+                  </div>
+                  <h3 className="text-xl font-bold uppercase tracking-wide mb-4">
+                    {relatedProduct.name}
+                  </h3>
+                  <Link
+                    to={`/${relatedProduct.category}/${relatedProduct.id}`}
+                    className="px-8 py-3 bg-orange-500 text-white font-semibold rounded hover:bg-orange-600 transition-colors inline-block"
+                  >
+                    SEE PRODUCT
+                  </Link>
                 </div>
-                <h3 className="text-xl font-bold uppercase tracking-wide mb-4">
-                  XX99 Mark I
-                </h3>
-                {/* 🌟 FIX APPLIED HERE: Using Link instead of navigate */}
-                <Link
-                  to={"/headphones/2"}
-                  className="inline-block px-8 py-3 bg-orange-500 text-white font-semibold rounded hover:bg-orange-600 transition-colors"
-                >
-                  SEE PRODUCT
-                </Link>
-              </div>
-
-              {/* === RELATED PRODUCT 2: XX59 === */}
-              <div className="text-center">
-                <div className="bg-gray-100 rounded-lg overflow-hidden mb-6">
-                  <img
-                    src="/src/assets/Images/product-xx59-headphones/desktop/image-category-page-preview.jpg"
-                    alt="Related Product"
-                    className="w-full h-64 object-cover"
-                  />
-                </div>
-                <h3 className="text-xl font-bold uppercase tracking-wide mb-4">
-                  XX59
-                </h3>
-                {/* 🌟 FIX APPLIED HERE: Using Link instead of navigate */}
-                <Link
-                  to={"/headphones/3"}
-                  className="inline-block px-8 py-3 bg-orange-500 text-white font-semibold rounded hover:bg-orange-600 transition-colors"
-                >
-                  SEE PRODUCT
-                </Link>
-              </div>
-
-              {/* === RELATED PRODUCT 3: ZX9 SPEAKER === */}
-              <div className="text-center">
-                <div className="bg-gray-100 rounded-lg overflow-hidden mb-6">
-                  <img
-                    src="/src/assets/Images/product-zx9-speaker/desktop/image-category-page-preview.jpg"
-                    alt="Related Product"
-                    className="w-full h-64 object-cover"
-                  />
-                </div>
-                <h3 className="text-xl font-bold uppercase tracking-wide mb-4">
-                  ZX9 SPEAKER
-                </h3>
-                {/* 🌟 FIX APPLIED HERE: Using Link instead of navigate */}
-                <Link
-                  to={"/speakers/4"}
-                  className="inline-block px-8 py-3 bg-orange-500 text-white font-semibold rounded hover:bg-orange-600 transition-colors"
-                >
-                  SEE PRODUCT
-                </Link>
-              </div>
+              ))}
             </div>
           </div>
         </section>
